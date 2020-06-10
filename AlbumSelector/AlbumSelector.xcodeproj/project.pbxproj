@@ -23,8 +23,9 @@
 		A78817A4247CFD0300A48632 /* AssetCollectionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A78817A3247CFD0300A48632 /* AssetCollectionViewController.m */; };
 		A78817A7247CFE3400A48632 /* AssetCollectionViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = A78817A6247CFE3400A48632 /* AssetCollectionViewCell.m */; };
 		A78817AA247E49A600A48632 /* AssetPickerManager.m in Sources */ = {isa = PBXBuildFile; fileRef = A78817A9247E49A600A48632 /* AssetPickerManager.m */; };
-		A78817AD24809F9300A48632 /* ImageScrollPreview.m in Sources */ = {isa = PBXBuildFile; fileRef = A78817AC24809F9300A48632 /* ImageScrollPreview.m */; };
+		A78817AD24809F9300A48632 /* ImagePreview.m in Sources */ = {isa = PBXBuildFile; fileRef = A78817AC24809F9300A48632 /* ImagePreview.m */; };
 		A7DD34BF248E1B3000940FB6 /* AblumTitleButton.m in Sources */ = {isa = PBXBuildFile; fileRef = A7DD34BE248E1B3000940FB6 /* AblumTitleButton.m */; };
+		A7DD34C2248F345800940FB6 /* AlbumListView.m in Sources */ = {isa = PBXBuildFile; fileRef = A7DD34C1248F345800940FB6 /* AlbumListView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -75,10 +76,12 @@
 		A78817A6247CFE3400A48632 /* AssetCollectionViewCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AssetCollectionViewCell.m; sourceTree = "<group>"; };
 		A78817A8247E49A600A48632 /* AssetPickerManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AssetPickerManager.h; sourceTree = "<group>"; };
 		A78817A9247E49A600A48632 /* AssetPickerManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AssetPickerManager.m; sourceTree = "<group>"; };
-		A78817AB24809F9300A48632 /* ImageScrollPreview.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ImageScrollPreview.h; sourceTree = "<group>"; };
-		A78817AC24809F9300A48632 /* ImageScrollPreview.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ImageScrollPreview.m; sourceTree = "<group>"; };
+		A78817AB24809F9300A48632 /* ImagePreview.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ImagePreview.h; sourceTree = "<group>"; };
+		A78817AC24809F9300A48632 /* ImagePreview.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ImagePreview.m; sourceTree = "<group>"; };
 		A7DD34BD248E1B3000940FB6 /* AblumTitleButton.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AblumTitleButton.h; sourceTree = "<group>"; };
 		A7DD34BE248E1B3000940FB6 /* AblumTitleButton.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AblumTitleButton.m; sourceTree = "<group>"; };
+		A7DD34C0248F345800940FB6 /* AlbumListView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AlbumListView.h; sourceTree = "<group>"; };
+		A7DD34C1248F345800940FB6 /* AlbumListView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AlbumListView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -145,12 +148,14 @@
 				A78817A3247CFD0300A48632 /* AssetCollectionViewController.m */,
 				A78817A5247CFE3400A48632 /* AssetCollectionViewCell.h */,
 				A78817A6247CFE3400A48632 /* AssetCollectionViewCell.m */,
-				A78817AB24809F9300A48632 /* ImageScrollPreview.h */,
-				A78817AC24809F9300A48632 /* ImageScrollPreview.m */,
+				A78817AB24809F9300A48632 /* ImagePreview.h */,
+				A78817AC24809F9300A48632 /* ImagePreview.m */,
 				A74B5CAB248A45030094D38A /* HDAuthorizationManager.h */,
 				A74B5CAC248A45030094D38A /* HDAuthorizationManager.m */,
 				A7DD34BD248E1B3000940FB6 /* AblumTitleButton.h */,
 				A7DD34BE248E1B3000940FB6 /* AblumTitleButton.m */,
+				A7DD34C0248F345800940FB6 /* AlbumListView.h */,
+				A7DD34C1248F345800940FB6 /* AlbumListView.m */,
 				A788176D247616EE00A48632 /* Main.storyboard */,
 				A7881773247616F100A48632 /* Assets.xcassets */,
 				A7881775247616F100A48632 /* LaunchScreen.storyboard */,
@@ -317,6 +322,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A7DD34C2248F345800940FB6 /* AlbumListView.m in Sources */,
 				A788177A247616F100A48632 /* main.m in Sources */,
 				A78817AA247E49A600A48632 /* AssetPickerManager.m in Sources */,
 				A78817A1247BACF900A48632 /* AlbumListController.m in Sources */,
@@ -324,7 +330,7 @@
 				A78817A7247CFE3400A48632 /* AssetCollectionViewCell.m in Sources */,
 				A788176C247616EE00A48632 /* ViewController.m in Sources */,
 				A7881766247616ED00A48632 /* AppDelegate.m in Sources */,
-				A78817AD24809F9300A48632 /* ImageScrollPreview.m in Sources */,
+				A78817AD24809F9300A48632 /* ImagePreview.m in Sources */,
 				A7DD34BF248E1B3000940FB6 /* AblumTitleButton.m in Sources */,
 				A74B5CAD248A45030094D38A /* HDAuthorizationManager.m in Sources */,
 				A7881769247616EE00A48632 /* SceneDelegate.m in Sources */,
@@ -497,15 +503,17 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = GS35G3F9RX;
+				DEVELOPMENT_TEAM = 8UTC3S4RZK;
 				INFOPLIST_FILE = AlbumSelector/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = hadlinks.AlbumSelector;
+				PRODUCT_BUNDLE_IDENTIFIER = hadlinks.AlbumSelectorh;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -515,13 +523,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = GS35G3F9RX;
+				DEVELOPMENT_TEAM = 8UTC3S4RZK;
 				INFOPLIST_FILE = AlbumSelector/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = hadlinks.AlbumSelector;
+				PRODUCT_BUNDLE_IDENTIFIER = hadlinks.AlbumSelectorh;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

@@ -10,8 +10,9 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface ImageScrollPreview : UIScrollView
+@interface ImagePreview : UIView
 @property (nonatomic,strong) UIImage *image;
+@property (nonatomic,assign) CGRect imageFrame;
 - (void)showImagePreview;
 @end
 

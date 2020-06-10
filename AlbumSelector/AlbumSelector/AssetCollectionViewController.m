@@ -10,13 +10,14 @@
 #import "AssetCollectionViewCell.h"
 #import <PhotosUI/PhotosUI.h>
 #import "AssetPickerManager.h"
-#import "ImageScrollPreview.h"
+#import "ImagePreview.h"
 #import "AblumTitleButton.h"
+#import "AlbumListView.h"
 #define KScreen_WIDTH   [[UIScreen mainScreen] bounds].size.width
 #define KScreen_HEIGHT  [[UIScreen mainScreen] bounds].size.height
 
 typedef void(^ResultHandler)(UIImage *image, NSDictionary *info);
-@interface AssetCollectionViewController ()
+@interface AssetCollectionViewController () <AlbumListDelegate>
 {
     CGSize thumbnailSize;
 }
@@ -26,6 +27,7 @@ typedef void(^ResultHandler)(UIImage *image, NSDictionary *info);
 @property (nonatomic,strong) NSMutableArray *selectedImageArray;
 @property (nonatomic,strong) AblumTitleButton *albumTitleBtn;
 @property (nonatomic,assign) BOOL isShowAlbumList;
+@property (nonatomic,strong) AlbumListView *albumListView;
 @end
 
 @implementation AssetCollectionViewController
@@ -58,6 +60,7 @@ static NSString * const reuseIdentifier = @"AssetCell";
     [_albumTitleBtn setImage:[UIImage imageNamed:@"arrow_hide_nor"] forState:UIControlStateNormal];
     [_albumTitleBtn setImage:[UIImage imageNamed:@"arrow_hide_click"] forState:UIControlStateHighlighted];
     [_albumTitleBtn addTarget:self action:@selector(showAlbumListClick:) forControlEvents:UIControlEventTouchUpInside];
+    [_albumTitleBtn setTitleColor:UIColor.blackColor forState:UIControlStateNormal];
     self.navigationItem.titleView = _albumTitleBtn;
 }
 
@@ -67,15 +70,30 @@ static NSString * const reuseIdentifier = @"AssetCell";
     NSString *highLightImageName = _isShowAlbumList ? @"arrow_show_click" : @"arrow_hide_click";
     [sender setImage:[UIImage imageNamed:normalImageName] forState:UIControlStateNormal];
     [sender setImage:[UIImage imageNamed:highLightImageName] forState:UIControlStateHighlighted];
+    if (_isShowAlbumList) {
+        [self.view addSubview:self.albumListView];
+        [self.albumListView showAlbumList];
+    } else {
+        [self.albumListView hidenAlbumList];
+    }
 }
 
 - (void)initData{
+    PHFetchOptions *option = [[PHFetchOptions alloc] init];
+    option.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:NO]];
     if (!_fetchResult) {
-        PHFetchResult *recentResult = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeSmartAlbum subtype:PHAssetCollectionSubtypeSmartAlbumRecentlyAdded options:nil];
-        _assetCollection = recentResult.firstObject;
-        PHFetchOptions *allPhotosOptions = [[PHFetchOptions alloc] init];
-        allPhotosOptions.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:YES]];
-        _fetchResult = [PHAsset fetchAssetsInAssetCollection:_assetCollection options:allPhotosOptions];
+        //最近添加相册
+        PHFetchResult *recentResult = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeSmartAlbum subtype:PHAssetCollectionSubtypeAlbumRegular options:nil];
+        [recentResult enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+            PHAssetCollection *collection = obj;
+            if ([collection isKindOfClass:[PHAssetCollection class]] && collection.estimatedAssetCount > 0) {
+                if ([self isCameraRollAlbum:collection]) {
+                    self->_assetCollection = collection;
+                    self->_fetchResult = [PHAsset fetchAssetsInAssetCollection:collection options:option];
+                    *stop = YES;
+                }
+            }
+        }];
     }
     __weak typeof(self) weakSelf = self;
     [_fetchResult enumerateObjectsUsingBlock:^(PHAsset * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
@@ -83,10 +101,10 @@ static NSString * const reuseIdentifier = @"AssetCell";
             [weakSelf.imageDataSource addObject:obj];
         }
     }];
-    self.imageDataSource = (NSMutableArray *)[[self.imageDataSource reverseObjectEnumerator] allObjects];
     _imageManager = [[PHCachingImageManager alloc] init];
     _requestOption = [[PHImageRequestOptions alloc] init];
     _requestOption.resizeMode = PHImageRequestOptionsResizeModeExact;
+    [self.collectionView reloadData];
 }
 
 - (void)collectionViewConfig {
@@ -94,7 +112,6 @@ static NSString * const reuseIdentifier = @"AssetCell";
 }
 
 - (void)completeSelectedImage {
-
     if (self.selectedImageArray.count == 0) {
         [AssetPickerDefault.delegate cancleSelectedImage];
     } else {
@@ -114,9 +131,25 @@ static NSString * const reuseIdentifier = @"AssetCell";
         }];
         [AssetPickerDefault.delegate didFinishSelectedImage:imageArray];
     }
-    NSInteger index = [self.navigationController.viewControllers indexOfObject:self];
-    [self.navigationController popToViewController:self.navigationController.viewControllers[index - 2] animated:YES];
+    [self.navigationController popViewControllerAnimated:YES];
 }
+
+- (BOOL)isCameraRollAlbum:(PHAssetCollection *)metadata {
+    NSString *versionStr = [[UIDevice currentDevice].systemVersion stringByReplacingOccurrencesOfString:@"." withString:@""];
+    if (versionStr.length <= 1) {
+        versionStr = [versionStr stringByAppendingString:@"00"];
+    } else if (versionStr.length <= 2) {
+        versionStr = [versionStr stringByAppendingString:@"0"];
+    }
+    CGFloat version = versionStr.floatValue;
+    // IOS 8.0.0 ~ 8.0.2系统，拍照后的图片会保存在最近添加中
+    if (version >= 800 && version <= 802) {
+        return ((PHAssetCollection *)metadata).assetCollectionSubtype == PHAssetCollectionSubtypeSmartAlbumRecentlyAdded;
+    } else {
+        return ((PHAssetCollection *)metadata).assetCollectionSubtype == PHAssetCollectionSubtypeSmartAlbumUserLibrary;
+    }
+}
+
 
 - (NSMutableArray *)imageDataSource {
     if (!_imageDataSource) {
@@ -132,6 +165,13 @@ static NSString * const reuseIdentifier = @"AssetCell";
     return _selectedImageArray;
 }
 
+- (AlbumListView *)albumListView {
+    if (!_albumListView) {
+        _albumListView = [[AlbumListView alloc] initWithFrame:self.view.frame];
+        _albumListView.delegate = self;
+    }
+    return _albumListView;
+}
 #pragma mark <UICollectionViewDataSource>
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section{
@@ -179,22 +219,19 @@ static NSString * const reuseIdentifier = @"AssetCell";
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
     UIWindow* window = nil;
      
-    if (@available(iOS 13.0, *))
-    {
-        for (UIWindowScene* windowScene in [UIApplication sharedApplication].connectedScenes)
-        {
-            if (windowScene.activationState == UISceneActivationStateForegroundActive)
-            {
+    if (@available(iOS 13.0, *)) {
+        for (UIWindowScene* windowScene in [UIApplication sharedApplication].connectedScenes) {
+            if (windowScene.activationState == UISceneActivationStateForegroundActive) {
                 window = windowScene.windows.firstObject;
-
                 break;
             }
         }
     }else{
         window = [UIApplication sharedApplication].keyWindow;
     }
+    
     CGRect cellFrame = [[collectionView cellForItemAtIndexPath:indexPath] convertRect: [collectionView cellForItemAtIndexPath:indexPath].bounds toView:window];
-    __block ImageScrollPreview *imagePreview = [[ImageScrollPreview alloc] initWithFrame:cellFrame];
+    __block ImagePreview *imagePreview = [[ImagePreview alloc] initWithFrame:[UIScreen mainScreen].bounds];
     [window addSubview:imagePreview];
     PHAsset *asset = [self.imageDataSource objectAtIndex:indexPath.item];
     PHImageRequestOptions *option = [[PHImageRequestOptions alloc] init];
@@ -208,7 +245,17 @@ static NSString * const reuseIdentifier = @"AssetCell";
                           resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
         imagePreview.image = result;
     }];
+    imagePreview.imageFrame = cellFrame;
     [imagePreview showImagePreview];
 }
 
+#pragma mark - Album List View Delegate
+- (void)didSelectedAblum:(PHAssetCollection *)assetCollection andAssetResult:(PHFetchResult<PHAsset *> *)result {
+    self.assetCollection = assetCollection;
+    self.fetchResult = result;
+    [self.imageDataSource removeAllObjects];
+    [self initData];
+    self.isShowAlbumList = NO;
+    [self.albumTitleBtn setTitle:assetCollection.localizedTitle forState:UIControlStateNormal];
+}
 @end

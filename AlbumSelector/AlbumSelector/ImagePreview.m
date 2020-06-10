@@ -6,36 +6,25 @@
 //  Copyright © 2020 hadlinks. All rights reserved.
 //
 
-#import "ImageScrollPreview.h"
-@interface ImageScrollPreview()
+#import "ImagePreview.h"
+@interface ImagePreview()
 @property (nonatomic,strong) UIImageView *imageView;
-@property (nonatomic,assign) CGRect rect;
 @end
-@implementation ImageScrollPreview
+@implementation ImagePreview
 
 - (instancetype)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
-        [self initImageView];
-        self.maximumZoomScale = .5;
-        self.maximumZoomScale = 2;
-        self.rect = frame;
+        self.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:.3];
+        UITapGestureRecognizer *tapGes = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(removePreview)];
+        [self addGestureRecognizer:tapGes];
     }
     return self;
 }
 
-- (void)initImageView {
-    _imageView = [[UIImageView alloc] initWithFrame:self.bounds];
-    _imageView.contentMode = UIViewContentModeScaleAspectFit;
-    [self addSubview:_imageView];
-    UITapGestureRecognizer *tapGes = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(removePreview)];
-    [self addGestureRecognizer:tapGes];
-}
-
 - (void)removePreview {
     [UIView animateWithDuration:.3 animations:^{
-        self.frame = self.rect;
-        self.imageView.frame = self.bounds;
+        self.imageView.frame = self.imageFrame;
     } completion:^(BOOL finished) {
         [self removeFromSuperview];
     }];
@@ -43,17 +32,28 @@
 
 - (void)setImage:(UIImage *)image {
     _image = image;
-    _imageView.image = _image;
+    self.imageView.image = _image;
 }
 
 - (void)showImagePreview {
     [UIView animateWithDuration:.3 animations:^{
-        self.frame = [UIScreen mainScreen].bounds;
+        self.imageView.contentMode = UIViewContentModeScaleAspectFit;
         self.imageView.frame = [UIScreen mainScreen].bounds;
     }];
 }
 
-
+- (UIImageView *)imageView {
+    if (!_imageView) {
+        _imageView = [[UIImageView alloc] init];
+        _imageView.contentMode = UIViewContentModeScaleAspectFill;
+        [self addSubview:_imageView];
+    }
+    return _imageView;
+}
+- (void)setImageFrame:(CGRect)imageFrame {
+    _imageFrame = imageFrame;
+    self.imageView.frame = imageFrame;
+}
 /*
 // Only override drawRect: if you perform custom drawing.
 // An empty implementation adversely affects performance during animation.

@@ -7,9 +7,8 @@
 //
 
 #import "AssetPickerManager.h"
-#import "AlbumListController.h"
+#import "AssetCollectionViewController.h"
 @interface AssetPickerManager()
-@property (nonatomic,strong) AlbumListController *albumCtr;
 @end
 @implementation AssetPickerManager
 static AssetPickerManager *manager;
@@ -28,15 +27,16 @@ static AssetPickerManager *manager;
 }
 
 - (void)pushToAlbumListWithController:(UIViewController *)controller {
-    AlbumListController *albumCtr = [[AlbumListController alloc] init];
-    [controller.navigationController pushViewController:albumCtr animated:YES];
+    UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc] init];
+    CGFloat margin = 2;
+    CGFloat itemHeight = (CGRectGetWidth([UIScreen mainScreen].bounds) - margin * 4) / 4;
+    layout.itemSize = CGSizeMake(itemHeight, itemHeight);
+    layout.sectionInset = UIEdgeInsetsMake(0, 0, 2, 2);
+    layout.minimumLineSpacing = 2;
+    layout.minimumInteritemSpacing = 2;
+    AssetCollectionViewController *vc = [[AssetCollectionViewController alloc] initWithCollectionViewLayout:layout];
+    [controller.navigationController pushViewController:vc animated:YES];
 }
 
-- (AlbumListController *)albumCtr {
-    if (!_albumCtr) {
-        _albumCtr = [[AlbumListController alloc] init];
-    }
-    return _albumCtr;
-}
 
 @end
