@@ -26,6 +26,7 @@
 		A78817AD24809F9300A48632 /* ImagePreview.m in Sources */ = {isa = PBXBuildFile; fileRef = A78817AC24809F9300A48632 /* ImagePreview.m */; };
 		A7DD34BF248E1B3000940FB6 /* AblumTitleButton.m in Sources */ = {isa = PBXBuildFile; fileRef = A7DD34BE248E1B3000940FB6 /* AblumTitleButton.m */; };
 		A7DD34C2248F345800940FB6 /* AlbumListView.m in Sources */ = {isa = PBXBuildFile; fileRef = A7DD34C1248F345800940FB6 /* AlbumListView.m */; };
+		A7DD34C52491B81400940FB6 /* ImageAssetManager.m in Sources */ = {isa = PBXBuildFile; fileRef = A7DD34C42491B81400940FB6 /* ImageAssetManager.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -82,6 +83,8 @@
 		A7DD34BE248E1B3000940FB6 /* AblumTitleButton.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AblumTitleButton.m; sourceTree = "<group>"; };
 		A7DD34C0248F345800940FB6 /* AlbumListView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AlbumListView.h; sourceTree = "<group>"; };
 		A7DD34C1248F345800940FB6 /* AlbumListView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AlbumListView.m; sourceTree = "<group>"; };
+		A7DD34C32491B81400940FB6 /* ImageAssetManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ImageAssetManager.h; sourceTree = "<group>"; };
+		A7DD34C42491B81400940FB6 /* ImageAssetManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ImageAssetManager.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -156,6 +159,8 @@
 				A7DD34BE248E1B3000940FB6 /* AblumTitleButton.m */,
 				A7DD34C0248F345800940FB6 /* AlbumListView.h */,
 				A7DD34C1248F345800940FB6 /* AlbumListView.m */,
+				A7DD34C32491B81400940FB6 /* ImageAssetManager.h */,
+				A7DD34C42491B81400940FB6 /* ImageAssetManager.m */,
 				A788176D247616EE00A48632 /* Main.storyboard */,
 				A7881773247616F100A48632 /* Assets.xcassets */,
 				A7881775247616F100A48632 /* LaunchScreen.storyboard */,
@@ -330,6 +335,7 @@
 				A78817A7247CFE3400A48632 /* AssetCollectionViewCell.m in Sources */,
 				A788176C247616EE00A48632 /* ViewController.m in Sources */,
 				A7881766247616ED00A48632 /* AppDelegate.m in Sources */,
+				A7DD34C52491B81400940FB6 /* ImageAssetManager.m in Sources */,
 				A78817AD24809F9300A48632 /* ImagePreview.m in Sources */,
 				A7DD34BF248E1B3000940FB6 /* AblumTitleButton.m in Sources */,
 				A74B5CAD248A45030094D38A /* HDAuthorizationManager.m in Sources */,

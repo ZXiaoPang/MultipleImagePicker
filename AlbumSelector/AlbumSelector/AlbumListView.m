@@ -7,9 +7,10 @@
 //
 
 #import "AlbumListView.h"
+#import "ImageAssetManager.h"
 @interface AlbumListView () <UITableViewDelegate, UITableViewDataSource>
 @property (nonatomic,strong) UITableView *albumTableView;
-typedef void(^completion)(BOOL isOpera, NSMutableArray *albums, NSMutableArray *results);
+typedef void(^completion)(NSMutableArray *albums, NSMutableArray *results);
 @property (nonatomic,strong) NSMutableArray<PHAssetCollection *> *albums;
 @property (nonatomic,strong) NSMutableArray<PHFetchResult *> *results;
 @end
@@ -24,7 +25,7 @@ static NSString * const reuseIdentifier = @"AlbumNameCell";
     if (self) {
         self.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:.3];
         typeof(self) __weak weakSelf = self;
-        [self requestCollectionWithHandler:^(BOOL isOpera, NSMutableArray *albums, NSMutableArray *results) {
+        [ImageManager requestCollectionWithHandler:^(NSMutableArray * _Nonnull albums, NSMutableArray * _Nonnull results) {
             weakSelf.albums = albums;
             weakSelf.results = results;
             [weakSelf.albumTableView reloadData];
@@ -71,112 +72,6 @@ static NSString * const reuseIdentifier = @"AlbumNameCell";
     } completion:^(BOOL finished) {
         [self removeFromSuperview];
     }];
-}
-
-- (void)requestCollectionWithHandler:(completion)handler {
-    __block completion operation = handler;
-    PHFetchOptions *option = [[PHFetchOptions alloc] init];
-    option.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:NO]];
-    if ([self checkAlbumAuthorization]) {
-        __block NSMutableArray *album = [NSMutableArray new];
-        __block NSMutableArray *result = [NSMutableArray new];
-        PHFetchResult *myPhotoResult = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeAlbum subtype:PHAssetCollectionSubtypeAlbumMyPhotoStream options:nil];
-        PHFetchResult *smartResult = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeSmartAlbum subtype:PHAssetCollectionSubtypeAlbumRegular options:nil];
-        PHFetchResult *topLevelUserResult = [PHCollectionList fetchTopLevelUserCollectionsWithOptions:nil];
-        PHFetchResult *syncedResult = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeAlbum subtype:PHAssetCollectionSubtypeAlbumSyncedAlbum options:nil];
-        PHFetchResult *sharedResult = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeAlbum subtype:PHAssetCollectionSubtypeAlbumCloudShared options:nil];
-        [myPhotoResult enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-            if ([obj isKindOfClass:[PHAssetCollection class]]) {
-                PHAssetCollection *collection = obj;
-                if (collection.assetCollectionSubtype != PHAssetCollectionSubtypeSmartAlbumVideos
-                    && collection.assetCollectionSubtype != PHAssetCollectionSubtypeSmartAlbumAllHidden
-                    && collection.assetCollectionSubtype != PHAssetCollectionSubtypeSmartAlbumRecentlyAdded) {
-                    PHFetchResult *assetResult = [PHAsset fetchAssetsInAssetCollection:obj options:option];
-                    if (assetResult.count > 0) {
-                        [album addObject:obj];
-                        [result addObject:assetResult];
-                    }
-                }
-            }
-        }];
-        [smartResult enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-            if ([obj isKindOfClass:[PHAssetCollection class]]) {
-                PHAssetCollection *collection = obj;
-                if (collection.assetCollectionSubtype != PHAssetCollectionSubtypeSmartAlbumVideos
-                    && collection.assetCollectionSubtype != PHAssetCollectionSubtypeSmartAlbumAllHidden
-                    && collection.assetCollectionSubtype != PHAssetCollectionSubtypeSmartAlbumRecentlyAdded) {
-                    PHFetchResult *assetResult = [PHAsset fetchAssetsInAssetCollection:obj options:option];
-                    if (assetResult.count > 0) {
-                        [album addObject:obj];
-                        [result addObject:assetResult];
-                    }
-                }
-            }
-        }];
-        [topLevelUserResult enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-            if ([obj isKindOfClass:[PHAssetCollection class]]) {
-                PHAssetCollection *collection = obj;
-                if (collection.assetCollectionSubtype != PHAssetCollectionSubtypeSmartAlbumVideos
-                    && collection.assetCollectionSubtype != PHAssetCollectionSubtypeSmartAlbumAllHidden
-                    && collection.assetCollectionSubtype != PHAssetCollectionSubtypeSmartAlbumRecentlyAdded) {
-                    PHFetchResult *assetResult = [PHAsset fetchAssetsInAssetCollection:obj options:option];
-                    if (assetResult.count > 0) {
-                        [album addObject:obj];
-                        [result addObject:assetResult];
-                    }
-                }
-            }
-        }];
-        [syncedResult enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-             if ([obj isKindOfClass:[PHAssetCollection class]]) {
-                   PHAssetCollection *collection = obj;
-                   if (collection.assetCollectionSubtype != PHAssetCollectionSubtypeSmartAlbumVideos
-                       && collection.assetCollectionSubtype != PHAssetCollectionSubtypeSmartAlbumAllHidden
-                       && collection.assetCollectionSubtype != PHAssetCollectionSubtypeSmartAlbumRecentlyAdded) {
-                       PHFetchResult *assetResult = [PHAsset fetchAssetsInAssetCollection:obj options:option];
-                       if (assetResult.count > 0) {
-                           [album addObject:obj];
-                           [result addObject:assetResult];
-                       }
-                   }
-               }
-        }];
-        [sharedResult enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-             if ([obj isKindOfClass:[PHAssetCollection class]]) {
-                   PHAssetCollection *collection = obj;
-                   if (collection.assetCollectionSubtype != PHAssetCollectionSubtypeSmartAlbumVideos
-                       && collection.assetCollectionSubtype != PHAssetCollectionSubtypeSmartAlbumAllHidden
-                       && collection.assetCollectionSubtype != PHAssetCollectionSubtypeSmartAlbumRecentlyAdded) {
-                       PHFetchResult *assetResult = [PHAsset fetchAssetsInAssetCollection:obj options:option];
-                       if (assetResult.count > 0) {
-                           [album addObject:obj];
-                           [result addObject:assetResult];
-                       }
-                   }
-               }
-        }];
-        if (operation) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                operation(YES, album,result);
-            });
-        }
-        
-    } else {
-        [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
-            if (status == PHAuthorizationStatusAuthorized) {
-                [self requestCollectionWithHandler:operation];
-            }
-        }];
-    }
-}
-
-- (BOOL)checkAlbumAuthorization {
-    PHAuthorizationStatus authStatus = [PHPhotoLibrary authorizationStatus];
-    //读取设备授权状态
-    if(authStatus == AVAuthorizationStatusRestricted || authStatus == AVAuthorizationStatusNotDetermined){
-        return NO;
-    }
-    return YES;
 }
 
 #pragma mark - Table view data source

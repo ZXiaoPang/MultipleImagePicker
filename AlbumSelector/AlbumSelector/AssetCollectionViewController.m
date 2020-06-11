@@ -13,6 +13,7 @@
 #import "ImagePreview.h"
 #import "AblumTitleButton.h"
 #import "AlbumListView.h"
+#import "ImageAssetManager.h"
 #define KScreen_WIDTH   [[UIScreen mainScreen] bounds].size.width
 #define KScreen_HEIGHT  [[UIScreen mainScreen] bounds].size.height
 
@@ -21,8 +22,6 @@ typedef void(^ResultHandler)(UIImage *image, NSDictionary *info);
 {
     CGSize thumbnailSize;
 }
-@property (nonatomic, strong) PHCachingImageManager *imageManager;
-@property (nonatomic, strong) PHImageRequestOptions *requestOption;
 @property (nonatomic,strong) NSMutableArray *imageDataSource;
 @property (nonatomic,strong) NSMutableArray *selectedImageArray;
 @property (nonatomic,strong) AblumTitleButton *albumTitleBtn;
@@ -79,32 +78,20 @@ static NSString * const reuseIdentifier = @"AssetCell";
 }
 
 - (void)initData{
-    PHFetchOptions *option = [[PHFetchOptions alloc] init];
-    option.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:NO]];
-    if (!_fetchResult) {
-        //最近添加相册
-        PHFetchResult *recentResult = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeSmartAlbum subtype:PHAssetCollectionSubtypeAlbumRegular options:nil];
-        [recentResult enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-            PHAssetCollection *collection = obj;
-            if ([collection isKindOfClass:[PHAssetCollection class]] && collection.estimatedAssetCount > 0) {
-                if ([self isCameraRollAlbum:collection]) {
-                    self->_assetCollection = collection;
-                    self->_fetchResult = [PHAsset fetchAssetsInAssetCollection:collection options:option];
-                    *stop = YES;
-                }
-            }
+    typeof(self) __weak weakSelf = self;
+    if (!_assetCollection) {
+        [ImageManager getRecentlyAlbumWithHandler:^(NSMutableArray * _Nonnull images, NSString * _Nonnull albumName) {
+            weakSelf.imageDataSource = images;
+            [weakSelf.albumTitleBtn setTitle:albumName forState:UIControlStateNormal];
+            [weakSelf.collectionView reloadData];
+        }];
+    } else {
+        [ImageManager getAlbumWithResult:_fetchResult Collection:_assetCollection andHandler:^(NSMutableArray * _Nonnull images, NSString * _Nonnull albumName) {
+            weakSelf.imageDataSource = images;
+            [weakSelf.albumTitleBtn setTitle:albumName forState:UIControlStateNormal];
+            [weakSelf.collectionView reloadData];
         }];
     }
-    __weak typeof(self) weakSelf = self;
-    [_fetchResult enumerateObjectsUsingBlock:^(PHAsset * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        if (obj.mediaType == PHAssetMediaTypeImage) {
-            [weakSelf.imageDataSource addObject:obj];
-        }
-    }];
-    _imageManager = [[PHCachingImageManager alloc] init];
-    _requestOption = [[PHImageRequestOptions alloc] init];
-    _requestOption.resizeMode = PHImageRequestOptionsResizeModeExact;
-    [self.collectionView reloadData];
 }
 
 - (void)collectionViewConfig {
@@ -116,17 +103,10 @@ static NSString * const reuseIdentifier = @"AssetCell";
         [AssetPickerDefault.delegate cancleSelectedImage];
     } else {
         __block NSMutableArray *imageArray = [NSMutableArray array];
-        _requestOption.synchronous = YES;
-        _requestOption.deliveryMode = PHImageRequestOptionsDeliveryModeHighQualityFormat;
-        _requestOption.resizeMode = PHImageRequestOptionsResizeModeNone;
         [self.selectedImageArray enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
             PHAsset *asset = obj;
-            [_imageManager requestImageForAsset:asset
-                                     targetSize:thumbnailSize
-                                    contentMode:PHImageContentModeAspectFill
-                                        options:_requestOption
-                                  resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
-                [imageArray addObject:result];
+            [ImageManager getOriginalImageWithAsset:asset andSize:CGSizeZero thumbnailComplete:^(UIImage * _Nonnull image) {
+                [imageArray addObject:image];
             }];
         }];
         [AssetPickerDefault.delegate didFinishSelectedImage:imageArray];
@@ -134,21 +114,6 @@ static NSString * const reuseIdentifier = @"AssetCell";
     [self.navigationController popViewControllerAnimated:YES];
 }
 
-- (BOOL)isCameraRollAlbum:(PHAssetCollection *)metadata {
-    NSString *versionStr = [[UIDevice currentDevice].systemVersion stringByReplacingOccurrencesOfString:@"." withString:@""];
-    if (versionStr.length <= 1) {
-        versionStr = [versionStr stringByAppendingString:@"00"];
-    } else if (versionStr.length <= 2) {
-        versionStr = [versionStr stringByAppendingString:@"0"];
-    }
-    CGFloat version = versionStr.floatValue;
-    // IOS 8.0.0 ~ 8.0.2系统，拍照后的图片会保存在最近添加中
-    if (version >= 800 && version <= 802) {
-        return ((PHAssetCollection *)metadata).assetCollectionSubtype == PHAssetCollectionSubtypeSmartAlbumRecentlyAdded;
-    } else {
-        return ((PHAssetCollection *)metadata).assetCollectionSubtype == PHAssetCollectionSubtypeSmartAlbumUserLibrary;
-    }
-}
 
 
 - (NSMutableArray *)imageDataSource {
@@ -179,6 +144,7 @@ static NSString * const reuseIdentifier = @"AssetCell";
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath{
+    __weak typeof(self) weakSelf = self;
     AssetCollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:reuseIdentifier forIndexPath:indexPath];
     PHAsset *asset = [self.imageDataSource objectAtIndex:indexPath.item];
     if (@available(iOS 9.1, *)) {
@@ -188,7 +154,6 @@ static NSString * const reuseIdentifier = @"AssetCell";
     }
     cell.representedAssetIdentifier = asset.localIdentifier;
     
-    __weak typeof(self) weakSelf = self;
     cell.selectImageHandler = ^(UIImage * _Nonnull image) {
         if ([weakSelf.selectedImageArray containsObject:asset]) {
             [weakSelf.selectedImageArray removeObject:asset];
@@ -202,17 +167,12 @@ static NSString * const reuseIdentifier = @"AssetCell";
        [weakSelf.navigationItem.rightBarButtonItem setTitle:weakSelf.selectedImageArray.count > 0 ? @"完成":@"取消"];
     };
     
-    [_imageManager requestImageForAsset:asset
-                             targetSize:thumbnailSize
-                            contentMode:PHImageContentModeAspectFill
-                                options:_requestOption
-                          resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
-        if ([cell.representedAssetIdentifier isEqualToString:asset.localIdentifier]) {
-            cell.image = result;
+    [ImageManager getThumbnailWithAsset:asset andSize:thumbnailSize thumbnailComplete:^(UIImage * _Nonnull image) {
+       if ([cell.representedAssetIdentifier isEqualToString:asset.localIdentifier]) {
+            cell.image = image;
             cell.isChooseed = [self.selectedImageArray containsObject:asset];
         }
     }];
-
     return cell;
 }
 
@@ -234,16 +194,8 @@ static NSString * const reuseIdentifier = @"AssetCell";
     __block ImagePreview *imagePreview = [[ImagePreview alloc] initWithFrame:[UIScreen mainScreen].bounds];
     [window addSubview:imagePreview];
     PHAsset *asset = [self.imageDataSource objectAtIndex:indexPath.item];
-    PHImageRequestOptions *option = [[PHImageRequestOptions alloc] init];
-    option.synchronous = YES;
-    option.deliveryMode = PHImageRequestOptionsDeliveryModeHighQualityFormat;
-    option.resizeMode = PHImageRequestOptionsResizeModeNone;
-    [_imageManager requestImageForAsset:asset
-                             targetSize:thumbnailSize
-                            contentMode:PHImageContentModeAspectFill
-                                options:option
-                          resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
-        imagePreview.image = result;
+    [ImageManager getOriginalImageWithAsset:asset andSize:CGSizeZero thumbnailComplete:^(UIImage * _Nonnull image) {
+        imagePreview.image = image;
     }];
     imagePreview.imageFrame = cellFrame;
     [imagePreview showImagePreview];
@@ -256,6 +208,5 @@ static NSString * const reuseIdentifier = @"AssetCell";
     [self.imageDataSource removeAllObjects];
     [self initData];
     self.isShowAlbumList = NO;
-    [self.albumTitleBtn setTitle:assetCollection.localizedTitle forState:UIControlStateNormal];
 }
 @end
